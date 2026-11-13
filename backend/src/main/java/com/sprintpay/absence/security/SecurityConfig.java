@@ -1,3 +1,4 @@
+
 package com.sprintpay.absence.security;
 
 import org.springframework.context.annotation.Bean;
@@ -30,12 +31,26 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
             .authorizeHttpRequests(auth -> auth
+                // Authentification publique
                 .requestMatchers("/api/auth/**").permitAll()
+
+                // Healthcheck Docker : accès sans authentification
+                .requestMatchers(
+                    "/actuator/health",
+                    "/actuator/health/**"
+                ).permitAll()
+
+                // Toutes les autres routes nécessitent une authentification
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(tokenAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(
+                tokenAuthFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
@@ -58,4 +73,3 @@ public class SecurityConfig {
         return source;
     }
 }
-
